@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
@@ -12,204 +11,153 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import CLogo from "../components/CLogo";
+import { createLocalAccount } from "../auth/accountStore";
+import { AuthIllustration, AuthWave } from "../components/AuthIllustration";
 import SocialButtons from "../components/SocialButtons";
 
 export default function RegisterScreen() {
   const router = useRouter();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [emailTouched, setEmailTouched] = useState(false);
 
   const handleRegister = () => {
     setErrorMessage("");
-
-    if (!email.trim()) {
-      setErrorMessage("Please enter your email.");
-      return;
-    }
+    const normalizedEmail = email.trim().toLowerCase();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email.trim())) {
-      setErrorMessage("Please enter a valid email address.");
+    setEmailTouched(true);
+
+    if (!name.trim()) {
+      setErrorMessage("Masukkan nama lengkap.");
       return;
     }
-    if (!password) {
-      setErrorMessage("Please enter a password.");
+    if (!emailRegex.test(normalizedEmail)) {
+      setErrorMessage("Masukkan alamat email yang valid.");
       return;
     }
     if (password.length < 6) {
-      setErrorMessage("Password must be at least 6 characters.");
-      return;
-    }
-    if (password !== confirmPassword) {
-      setErrorMessage("Passwords do not match.");
+      setErrorMessage("Kata sandi minimal 6 karakter.");
       return;
     }
 
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      router.replace({
-        pathname: "/main",
-        params: { userEmail: email.trim() },
-      });
-    }, 600);
-  };
+    const account = createLocalAccount(name.trim(), normalizedEmail, password);
+    if (!account) {
+      setErrorMessage("Email ini sudah terdaftar. Silakan login.");
+      return;
+    }
 
-  const handleSocialRegister = (provider: string) => {
-    const demoEmail = `${provider}.user@example.com`;
     router.replace({
       pathname: "/main",
-      params: { userEmail: demoEmail },
+      params: { userName: account.name, userEmail: account.email },
     });
   };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar style="dark" />
+      <AuthWave />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
       >
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1 }}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 24 }}
+          keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
-          className="px-8 py-6"
+          className="px-7"
         >
-          {/* Top Center Logo (Gambar 1) */}
-          <View className="items-center mt-6 mb-8">
-            <CLogo size={80} variant="navy" />
+          <AuthIllustration height={174} characterColor="#df7778" />
+          <Text className="mb-4 mt-1 text-lg font-semibold text-[#171717]">
+            Register account
+          </Text>
+
+          <TextInput
+            accessibilityLabel="Nama lengkap"
+            className="mb-2 rounded-md border border-[#b9b0ae] px-3.5 py-3 text-sm text-[#222]"
+            placeholder="Full Name"
+            placeholderTextColor="#777"
+            value={name}
+            onChangeText={(value) => {
+              setName(value);
+              if (errorMessage) setErrorMessage("");
+            }}
+            autoCapitalize="words"
+            autoComplete="name"
+            returnKeyType="next"
+          />
+          <TextInput
+            accessibilityLabel="Email"
+            className={`rounded-md border px-3.5 py-3 text-sm text-[#222] ${
+              emailTouched && email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+                ? "border-[#ff6b6b]"
+                : "mb-2 border-[#b9b0ae]"
+            }`}
+            placeholder="Email"
+            placeholderTextColor="#777"
+            value={email}
+            onChangeText={(value) => {
+              setEmail(value);
+              setEmailTouched(true);
+              if (errorMessage) setErrorMessage("");
+            }}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoComplete="email"
+            autoCorrect={false}
+            returnKeyType="next"
+          />
+          {emailTouched && email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) ? (
+            <Text className="mb-2 ml-2 text-[10px] text-[#e25353]">
+              Please enter valid email !
+            </Text>
+          ) : null}
+          <View className="mb-2 flex-row items-center rounded-md border border-[#b9b0ae] px-3.5">
+            <TextInput
+              accessibilityLabel="Kata sandi"
+              className="flex-1 py-3 text-sm text-[#222]"
+              placeholder="Password"
+              placeholderTextColor="#777"
+              value={password}
+              onChangeText={(value) => {
+                setPassword(value);
+                if (errorMessage) setErrorMessage("");
+              }}
+              secureTextEntry
+              autoCapitalize="none"
+              autoComplete="new-password"
+              returnKeyType="done"
+              onSubmitEditing={handleRegister}
+            />
           </View>
 
-          {/* Heading */}
-          <View className="mb-6">
-            <Text className="text-2xl font-bold text-[#1A1A1A] mb-1">
-              Welcome
-            </Text>
-            <Text className="text-sm text-gray-400">
-              Create your account
-            </Text>
-          </View>
-
-          {/* Error Message */}
-          {errorMessage ? (
-            <View className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex-row items-center">
-              <Ionicons name="alert-circle" size={16} color="#DC2626" />
-              <Text className="ml-2 text-xs text-red-600 flex-1">
+          <View className="min-h-[25px] justify-center">
+            {errorMessage ? (
+              <Text accessibilityRole="alert" className="mt-1 text-xs text-red-600">
                 {errorMessage}
               </Text>
-            </View>
-          ) : null}
+            ) : null}
+          </View>
 
-          {/* Input Fields */}
-          <View className="space-y-4">
-            {/* Email Field */}
-            <View className="border border-gray-300 rounded-lg px-4 py-3 bg-white">
-              <TextInput
-                className="text-sm text-gray-900"
-                placeholder="Email"
-                placeholderTextColor="#9E9E9E"
-                value={email}
-                onChangeText={(val) => {
-                  setEmail(val);
-                  if (errorMessage) setErrorMessage("");
-                }}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-            </View>
+          <TouchableOpacity
+            accessibilityRole="button"
+            activeOpacity={0.85}
+            onPress={handleRegister}
+            className="mt-1 items-center rounded-md bg-[#1769F6] py-3.5"
+          >
+            <Text className="text-base font-bold text-white">Create account</Text>
+          </TouchableOpacity>
 
-            {/* Password Field */}
-            <View className="border border-gray-300 rounded-lg px-4 py-3 bg-white flex-row items-center justify-between mt-3">
-              <TextInput
-                className="text-sm text-gray-900 flex-1 pr-2"
-                placeholder="Password"
-                placeholderTextColor="#9E9E9E"
-                value={password}
-                onChangeText={(val) => {
-                  setPassword(val);
-                  if (errorMessage) setErrorMessage("");
-                }}
-                secureTextEntry={!showPassword}
-                autoCapitalize="none"
-              />
-              <TouchableOpacity
-                onPress={() => setShowPassword(!showPassword)}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
-                <Ionicons
-                  name={showPassword ? "eye-off-outline" : "eye-outline"}
-                  size={18}
-                  color="#9E9E9E"
-                />
-              </TouchableOpacity>
-            </View>
-
-            {/* Confirm Password Field */}
-            <View className="border border-gray-300 rounded-lg px-4 py-3 bg-white flex-row items-center justify-between mt-3">
-              <TextInput
-                className="text-sm text-gray-900 flex-1 pr-2"
-                placeholder="Confirm Password"
-                placeholderTextColor="#9E9E9E"
-                value={confirmPassword}
-                onChangeText={(val) => {
-                  setConfirmPassword(val);
-                  if (errorMessage) setErrorMessage("");
-                }}
-                secureTextEntry={!showConfirmPassword}
-                autoCapitalize="none"
-              />
-              <TouchableOpacity
-                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
-                <Ionicons
-                  name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
-                  size={18}
-                  color="#9E9E9E"
-                />
-              </TouchableOpacity>
-            </View>
-
-            {/* Sign Up Button */}
+          <SocialButtons />
+          <View className="mt-auto items-center pt-4">
             <TouchableOpacity
-              activeOpacity={0.8}
-              disabled={loading}
-              onPress={handleRegister}
-              className="bg-[#0D1E4C] active:bg-[#081433] rounded-lg py-3.5 items-center justify-center mt-5"
+              accessibilityRole="button"
+              onPress={() => router.replace("/login")}
             >
-              <Text className="text-white text-base font-semibold">
-                {loading ? "Creating account..." : "Sign up"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Divider "── or ──" */}
-          <View className="flex-row items-center justify-center my-6">
-            <View className="flex-1 h-[1px] bg-gray-200" />
-            <Text className="mx-3 text-xs text-gray-400 font-normal">or</Text>
-            <View className="flex-1 h-[1px] bg-gray-200" />
-          </View>
-
-          {/* Social Logins */}
-          <View className="items-center mb-6">
-            <SocialButtons onPressProvider={handleSocialRegister} />
-          </View>
-
-          {/* Bottom Prompt */}
-          <View className="items-center pb-2">
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() => router.push("/login")}
-            >
-              <Text className="text-xs text-gray-400">
-                Already have an account ?{" "}
-                <Text className="text-gray-900 font-bold">Login</Text>
+              <Text className="text-sm text-[#666]">
+                Sudah punya akun?{" "}
+                <Text className="font-bold text-[#171717]">Login</Text>
               </Text>
             </TouchableOpacity>
           </View>

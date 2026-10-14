@@ -1,42 +1,29 @@
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import CLogo from "../components/CLogo";
+import { AuthIllustration } from "../components/AuthIllustration";
 
-export default function SplashScreen() {
+export default function WelcomeScreen() {
   const router = useRouter();
 
-  useEffect(() => {
-    // Optional auto-redirect after 2 seconds if user doesn't tap
-    const timer = setTimeout(() => {
-      router.push("/login");
-    }, 2500);
-
-    return () => clearTimeout(timer);
-  }, [router]);
-
   return (
-    <SafeAreaView className="flex-1 bg-[#0D1E4C]">
-      <StatusBar style="light" />
-      <TouchableOpacity
-        activeOpacity={0.9}
-        onPress={() => router.push("/login")}
-        className="flex-1 items-center justify-center px-6"
-      >
-        {/* Large Iconic "C" Logo (Gambar 2) */}
-        <View className="items-center justify-center">
-          <CLogo size={160} variant="orange" />
-        </View>
-
-        {/* Subtle hint at bottom */}
-        <View className="absolute bottom-12 items-center">
-          <Text className="text-white/60 text-xs tracking-widest uppercase">
-            Tap to continue
-          </Text>
-        </View>
-      </TouchableOpacity>
+    <SafeAreaView className="flex-1 bg-white">
+      <StatusBar style="dark" />
+      <View className="flex-1 justify-center px-8">
+        <Text className="mb-4 text-center text-[22px] font-semibold text-[#151515]">
+          Welcome to our app
+        </Text>
+        <AuthIllustration height={230} />
+        <TouchableOpacity
+          accessibilityRole="button"
+          activeOpacity={0.85}
+          onPress={() => router.push("/login")}
+          className="mt-10 items-center rounded-md bg-[#1769F6] py-4"
+        >
+          <Text className="text-base font-bold text-white">Start</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
