@@ -55,7 +55,7 @@ export function AuthWave() {
       }}
       className="absolute bottom-0 left-0 right-0"
     >
-      <Svg width={width} height={130} viewBox="0 0 400 130" preserveAspectRatio="none">
+      <Svg width={width} height={130} viewBox="0 0 330 130" preserveAspectRatio="none">
         <Path
           d="M0 88c32-43 50-42 82-22 27 17 34 3 57-5 34-12 52 5 75 20 27 18 47 3 67-24 17-23 27-39 49-57v130H0z"
           fill="#b6e2fb"
